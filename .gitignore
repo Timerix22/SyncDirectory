@@ -1,0 +1,9 @@
+bin/
+obj/
+[Tt]mp/
+[Tt]emp/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.tmp
+*.log
