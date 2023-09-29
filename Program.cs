@@ -5,6 +5,7 @@ global using DTLib.Filesystem;
 global using File = DTLib.Filesystem.File;
 global using Directory = DTLib.Filesystem.Directory;
 using DTLib.Ben.Demystifier;
+using DTLib.Extensions;
 using SyncDirectory.Storage;
 
 Console.InputEncoding = Encoding.UTF8;
@@ -18,7 +19,10 @@ try
         "SyncDirectory-data-debug"
 #endif
     );
-    storage.CreateSnapshot("tmp", "tmp");
+    var s1=storage.CreateSnapshot("tmp", "tmp");
+    var s2=storage.CreateSnapshot("tmp2", "tmp2");
+    var diff = DirectorySnapshotDiff.Diff(s1, s2);
+    Console.WriteLine(diff.FileDiffs.MergeToString('\n'));
 }
 catch (Exception ex)
 {

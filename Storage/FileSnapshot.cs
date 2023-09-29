@@ -10,13 +10,19 @@ public record FileSnapshot(
     DateTime ModifyTimeUTC,
     DateTime SnapshotTimeUTC)
 {
-    public static FileSnapshot Create(IOPath filePath)
+    /// <summary>
+    /// Creates new FileSnapshot from an exnsting file
+    /// </summary>
+    /// <param name="fullFilePath">baseDirPath+filePathInBaseDir</param>
+    /// <param name="baseDirPath">will be removed from fullFilePath in the rezult FileSnapshot.Path</param>
+    /// <returns></returns>
+    public static FileSnapshot Create(IOPath fullFilePath, IOPath baseDirPath)
     {
-        var creationTime = System.IO.File.GetCreationTimeUtc(filePath.Str);
-        var modifyTime = System.IO.File.GetLastWriteTimeUtc(filePath.Str);
+        var creationTime = System.IO.File.GetCreationTimeUtc(fullFilePath.Str);
+        var modifyTime = System.IO.File.GetLastWriteTimeUtc(fullFilePath.Str);
         // sometimes LastWriteTime can be less then CreationTime when unpacking archives
         var latest = modifyTime > creationTime ? modifyTime : creationTime;
-        return new FileSnapshot(filePath, FileSize.Get(filePath), latest, DateTime.UtcNow);
+        return new FileSnapshot(fullFilePath.RemoveBase(baseDirPath), FileSize.Get(fullFilePath), latest, DateTime.UtcNow);
     }
 
     public static FileSnapshot Parse(DtsodV23 dtsod) =>

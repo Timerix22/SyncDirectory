@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using DTLib;
@@ -10,8 +11,11 @@ public record DirectorySnapshot(
     string Name,
     IOPath Path,
     DateTime SnapshotTimeUTC,
-    IReadOnlyCollection<FileSnapshot> Files)
+    FileSnapshot[] Files)
 {
+    public Lazy<Dictionary<string, FileSnapshot>> PathMap = new(() =>
+        new Dictionary<string, FileSnapshot>(Files.ToDictionary(f=>f.Path.Str)));
+    
     public static DirectorySnapshot Parse(DtsodV23 dtsod) =>
         new DirectorySnapshot(
             dtsod["name"],
@@ -22,7 +26,7 @@ public record DirectorySnapshot(
                     CultureInfo.InvariantCulture),
             ((List<object>)dtsod["files"])
                     .Select(fd=>FileSnapshot.Parse((DtsodV23)fd))
-                    .ToImmutableList()
+                    .ToArray()
         );
     
     public DtsodV23 ToDtsod() =>
@@ -38,10 +42,7 @@ public record DirectorySnapshot(
     {
         var fileSnapshots = new List<FileSnapshot>();
         foreach (var filePath in Directory.GetAllFiles(dirPath))
-        {
-            fileSnapshots.Add(FileSnapshot.Create(filePath));
-        }
-
-        return new DirectorySnapshot(name, dirPath, DateTime.UtcNow, fileSnapshots);
+            fileSnapshots.Add(FileSnapshot.Create(filePath, dirPath));
+        return new DirectorySnapshot(name, dirPath, DateTime.UtcNow, fileSnapshots.ToArray());
     }
 }
